@@ -1,6 +1,6 @@
 import csv
 
-AIRPORTS_DAT_FILE = "/home/igor/wttrin-geo/share/airports.dat"
+AIRPORTS_DAT_FILE = "/app/airports.dat"
 
 
 def load_aiports_index():
