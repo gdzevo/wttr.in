@@ -1,60 +1,54 @@
-# Build stage
-FROM golang:1-alpine as builder
+ARG PYTHON_VERSION=3.11
+ARG ALPINE_VERSION=3.21
+
+# Build stage go
+FROM golang:1-alpine AS go-builder
+RUN apk add --no-cache build-base
 
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY ./share/we-lang/ /app
+COPY . .
+RUN CGO_ENABLED=1 go build .
 
-RUN apk add --no-cache git
+# Build stage python
+FROM python:$PYTHON_VERSION-alpine$ALPINE_VERSION AS py-builder
+RUN apk add --no-cache build-base jq-dev oniguruma-dev llvm15-dev jpeg-dev zlib-dev autoconf automake libtool git
 
-RUN go get -u github.com/mattn/go-colorable && \
-    go get -u github.com/klauspost/lctime && \
-    go get -u github.com/mattn/go-runewidth && \
-    cd /app && CGO_ENABLED=0 go build .
+# Create a virtual environment for a clean install
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+ENV LLVM_CONFIG=/usr/bin/llvm15-config
+ENV JQPY_USE_SYSTEM_LIBS=1
 
-# Application stage
-FROM alpine:3.21.1
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-WORKDIR /app
+# Stage 2: The Final Image
+# Start from a fresh, minimal Alpine image
+FROM python:$PYTHON_VERSION-alpine$ALPINE_VERSION
 
-COPY ./requirements.txt /app
-
-ENV LLVM_CONFIG=/usr/bin/llvm11-config
-
-RUN apk add --no-cache --virtual .build \
-    autoconf \
-    automake \
-    g++ \
-    gcc \
-    jpeg-dev \
-    llvm11-dev\
-    make \
-    zlib-dev \
-    && apk add --no-cache \
-    python3 \
-    py3-pip \
-    py3-scipy \
-    py3-wheel \
-    py3-gevent \
-    zlib \
-    jpeg \
-    llvm11 \
-    libtool \
-    supervisor \
-    py3-numpy-dev \
-    python3-dev && \
-    mkdir -p /app/cache && \
+RUN apk add --no-cache jq llvm15-libs zlib jpeg supervisor && \
+	mkdir -p /app/cache && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /etc/supervisor/conf.d && \
     chmod -R o+rw /var/log/supervisor && \
-    chmod -R o+rw /var/run && \
-    pip install -r requirements.txt --no-cache-dir && \
-    apk del --no-cache -r .build
+    chmod -R o+rw /var/run
 
-COPY --from=builder /app/wttr.in /app/bin/wttr.in
-COPY ./bin /app/bin
-COPY ./lib /app/lib
-COPY ./share /app/share
+# Activate the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy your application code
+WORKDIR /app
+
+COPY --from=go-builder /app/wttr.in /app/bin/wttr.in
+COPY --from=py-builder /opt/venv /opt/venv
+
+COPY ./bin bin
+COPY ./lib lib
+COPY ./share share
 COPY share/docker/supervisord.conf /etc/supervisor/supervisord.conf
 
 ENV WTTR_MYDIR="/app"
