@@ -18,28 +18,23 @@ import os
 import re
 
 MYDIR = os.path.abspath(os.path.dirname(os.path.dirname("__file__")))
-
-if "WTTR_GEOLITE" in os.environ:
-    GEOLITE = os.environ["WTTR_GEOLITE"]
-else:
-    GEOLITE = os.path.join(MYDIR, "data", "GeoLite2-City.mmdb")
-
-WEGO = os.environ.get("WTTR_WEGO", "/home/igor/go/bin/we-lang")
+DATA_DIR = os.path.join(MYDIR, "data")
+CACHE_DIR = os.path.join(DATA_DIR, "cache")
+LOG_DIR = os.path.join(MYDIR, "log")
+GEOLITE = os.environ.get("WTTR_GEOLITE", os.path.join(DATA_DIR, "GeoLite2-City.mmdb"))
+WEGO = os.environ.get("WTTR_WEGO", os.path.join(MYDIR, "bin/we-lang"))
 PYPHOON = "pyphoon-lolcat"
 
-_DATADIR = "/wttr.in"
-_LOGDIR = "/wttr.in/log"
+IP2LCACHE = os.path.join(CACHE_DIR, "ip2l")
+PNG_CACHE = os.path.join(CACHE_DIR, "png")
+LRU_CACHE = os.path.join(CACHE_DIR, "lru")
 
-IP2LCACHE = os.path.join(_DATADIR, "cache/ip2l/")
-PNG_CACHE = os.path.join(_DATADIR, "cache/png")
-LRU_CACHE = os.path.join(_DATADIR, "cache/lru")
+LOG_FILE = os.path.join(LOG_DIR, "main.log")
 
-LOG_FILE = os.path.join(_LOGDIR, "main.log")
+PROXY_LOG_ACCESS = os.path.join(LOG_DIR, "proxy-access.log")
+PROXY_LOG_ERRORS = os.path.join(LOG_DIR, "proxy-errors.log")
 
-PROXY_LOG_ACCESS = os.path.join(_LOGDIR, "proxy-access.log")
-PROXY_LOG_ERRORS = os.path.join(_LOGDIR, "proxy-errors.log")
-
-MISSING_TRANSLATION_LOG = os.path.join(_LOGDIR, "missing-translation/%s.log")
+MISSING_TRANSLATION_LOG = os.path.join(LOG_DIR, "missing-translation")
 
 ALIASES = os.path.join(MYDIR, "share/aliases")
 ANSI2HTML = os.path.join(MYDIR, "share/ansi2html.sh")
@@ -75,9 +70,13 @@ except (TypeError, ValueError):
 
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 5001
-PROXY_CACHEDIR = os.path.join(_DATADIR, "cache/proxy-wwo/")
+PROXY_CACHEDIR = os.path.join(CACHE_DIR, "proxy-wwo")
 
-MY_EXTERNAL_IP = "5.9.243.187"
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
+os.makedirs(PROXY_CACHEDIR, exist_ok=True)
+
+MY_EXTERNAL_IP = "127.0.0.1"
 
 PLAIN_TEXT_AGENTS = [
     "curl",

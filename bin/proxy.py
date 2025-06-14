@@ -157,8 +157,12 @@ def translate(text, lang):
     """
 
     def _log_unknown_translation(lang, text):
-        with open(MISSING_TRANSLATION_LOG % lang, "a") as f_missing_translation:
-            f_missing_translation.write(text + "\n")
+        if not os.path.exists(MISSING_TRANSLATION_LOG):
+            os.makedirs(MISSING_TRANSLATION_LOG)
+
+        log_file_path = os.path.join(MISSING_TRANSLATION_LOG, f"{lang}.log")
+        with open(log_file_path, "a") as f_missing_translation:
+            f_missing_translation.write(f"{text}\n")
 
     if "," in text:
         terms = text.split(",")
