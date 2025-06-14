@@ -37,7 +37,7 @@ from constants import (
 )
 from weather_data import get_weather_data
 from . import v2
-from . import v3
+# from . import v3
 from . import prometheus
 
 PRECONFIGURED_FORMAT = {

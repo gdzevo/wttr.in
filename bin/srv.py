@@ -23,7 +23,7 @@ from globals import TEMPLATES, STATIC, LISTEN_HOST, LISTEN_PORT
 
 # pylint: enable=wrong-import-position,wrong-import-order
 
-from view.v3 import v3_file
+# from view.v3 import v3_file
 
 MY_LOADER = jinja2.ChoiceLoader(
     [
