@@ -109,12 +109,7 @@ def _geolocator(location):
     """
 
     try:
-        if random.random() < 0:
-            geo = requests.get("%s/%s" % (GEOLOCATOR_SERVICE, location)).text
-        else:
-            geo = requests.get(
-                "http://127.0.0.1:8085/:geo-location?location=%s" % location
-            ).text
+        geo = requests.get("%s/%s" % (GEOLOCATOR_SERVICE, location)).text
     except requests.exceptions.ConnectionError as exception:
         print("ERROR: %s" % exception)
         return None
@@ -165,27 +160,19 @@ def _ipcache(ip_addr):
     TODO: When cache becomes more robust, transition to using latlong
     """
 
-    ## Use Geo IP service when available
-    r = requests.get("http://127.0.0.1:8085/:geo-ip-get?ip=%s" % ip_addr)
-    if r.status_code == 200 and ";" in r.text:
-        _, country, region, city, *_ = r.text.split(";")
-        return city, region, country
+    cachefile = os.path.join(IP2LCACHE, ip_addr)
 
+    if os.path.exists(cachefile):
+        try:
+            _, country, region, city, *_ = open(cachefile, 'r').read().split(';')
+            return city, region, country
+        except ValueError:
+            # cache entry is malformed: should be
+            # [ccode];country;region;city;[lat];[long];...
+            return None
+    else:
+        _debug_log("[_ipcache] %s not found" % ip_addr)
     return None
-
-    # cachefile = os.path.join(IP2LCACHE, ip_addr)
-    #
-    # if os.path.exists(cachefile):
-    #     try:
-    #         _, country, region, city, *_ = open(cachefile, 'r').read().split(';')
-    #         return city, region, country
-    #     except ValueError:
-    #         # cache entry is malformed: should be
-    #         # [ccode];country;region;city;[lat];[long];...
-    #         return None
-    # else:
-    #     _debug_log("[_ipcache] %s not found" % ip_addr)
-    # return None
 
 
 def _ip2location(ip_addr):
