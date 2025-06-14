@@ -82,9 +82,7 @@ def query_osm(location_string):
 def add_timezone_information(geo_data):
     # tzwhere_ = tzwhere.tzwhere()
     # timezone_str = tzwhere_.tzNameAt(geo_data["latitude"], geo_data["longitude"])
-    timezone_str = tf.certain_timezone_at(
-        lat=geo_data["latitude"], lng=geo_data["longitude"]
-    )
+    timezone_str = tf.timezone_at(lat=geo_data["latitude"], lng=geo_data["longitude"], force_evaluation=True)
 
     answer = geo_data.copy()
     answer["timezone"] = timezone_str

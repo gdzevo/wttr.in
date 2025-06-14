@@ -184,8 +184,11 @@ def hpa_to_mmHg(hpa):
 
 def group_hours_to_days(lat, lng, hourlies, days_to_return):
     tf = timezonefinder.TimezoneFinder()
-    timezone_str = tf.certain_timezone_at(lat=lat, lng=lng)
+    timezone_str = tf.timezone_at(lat=lat, lng=lng, force_evaluation=True)
     logger.debug("got TZ: " + timezone_str)
+    if timezone_str is None:
+        return {}
+
     tz = timezone(timezone_str)
     start_day_gmt = datetime.fromisoformat(hourlies[0]["time"].replace("Z", "+00:00"))
     start_day_local = start_day_gmt.astimezone(tz)
